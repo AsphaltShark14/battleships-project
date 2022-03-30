@@ -3,10 +3,42 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        .game{
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 50px;
+        }
+        
+        table{
+            width: 300px;
+            height: 300px;
+        }
+        
+        table, th, td {
+            border: 1px solid black;
+            border-collapse: collapse;
+        }
+
+        .ship {
+            background-color: blue;
+        }
+
+        .ship-down {
+            background-color: crimson;
+        }
+    </style>
     <title>Battleships</title>
 </head>
 <body>
-    
+    <div class="title">
+        <span>Game of Battleships</span>
+    </div>
+    <div class="game">
+        <table class="player"></table>
+        <table class="computer"></table>
+    </div>
 
     <script src="app.js"></script>
 </body>
