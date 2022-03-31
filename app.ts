@@ -55,10 +55,12 @@ class Cell {
 class Gameboard {
     cells: Cell[];
     table: HTMLTableElement;
+    shipsType: number[];
 
     constructor(public userType: User) {
         this.cells = new Array(10);
         this.userType = userType;
+        this.shipsType = [5, 4, 3, 3, 2];
         this.table = document.querySelector(`.${this.userType}`)!;
         let i = 0;
         for (let r = 0; r < 10; r++) {
@@ -78,19 +80,24 @@ class Gameboard {
                 i++;
             }
         }
+
+        
     }
 
-    placeShips() {
-        const ship = new Ship(3);
-        const index = this.cells.findIndex(cell => cell.dx == 5 && cell.dy == 4);
-        this.cells.map(cell => {
-            if (cell.dx == 5 && cell.dy == 4) {
-                let i = 0;
-                if (i > ship.shipElements.length) return;
-                cell.setCell(ship.shipElements[i])
-                i++;
-            }
-        })
+    populateGameboard() {
+        this.shipsType.map(ship => this.placeShip(ship));
+    }
+    
+    placeShip(shipType: number) {
+            let ship = new Ship(shipType);
+            let randomX: number = Math.floor(Math.random() * 9);
+            let randomY: number = Math.floor(Math.random() * 9);
+            const index = this.cells.findIndex(cell => cell.dx == randomX && cell.dy == randomY);
+            for (let i = 0; i < ship.shipElements.length; i++) {
+                this.cells[index + i].setCell(1);
+        }
+        
+        
     }
 
     recieveAttack(e: Event) {

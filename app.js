@@ -41,6 +41,7 @@ class Gameboard {
         this.userType = userType;
         this.cells = new Array(10);
         this.userType = userType;
+        this.shipsType = [5, 4, 3, 3, 2];
         this.table = document.querySelector(`.${this.userType}`);
         let i = 0;
         for (let r = 0; r < 10; r++) {
@@ -59,18 +60,17 @@ class Gameboard {
             }
         }
     }
-    placeShips() {
-        const ship = new Ship(3);
-        const index = this.cells.findIndex(cell => cell.dx == 5 && cell.dy == 4);
-        this.cells.map(cell => {
-            if (cell.dx == 5 && cell.dy == 4) {
-                let i = 0;
-                if (i > ship.shipElements.length)
-                    return;
-                cell.setCell(ship.shipElements[i]);
-                i++;
-            }
-        });
+    populateGameboard() {
+        this.shipsType.map(ship => this.placeShip(ship));
+    }
+    placeShip(shipType) {
+        let ship = new Ship(shipType);
+        let randomX = Math.floor(Math.random() * 9);
+        let randomY = Math.floor(Math.random() * 9);
+        const index = this.cells.findIndex(cell => cell.dx == randomX && cell.dy == randomY);
+        for (let i = 0; i < ship.shipElements.length; i++) {
+            this.cells[index + i].setCell(1);
+        }
     }
     recieveAttack(e) {
         console.log(e);
