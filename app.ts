@@ -26,14 +26,10 @@ class Cell {
     cellValue: number;
     htmlElement: HTMLElement;
     isChecked: boolean;
-    dx: number;
-    dy: number;
-   constructor(cell: HTMLElement, dx:number, dy:number) {
+   constructor(cell: HTMLElement) {
        this.htmlElement = cell;
        this.isChecked = false;
        this.cellValue = 0;
-       this.dx = dx;
-       this.dy = dy;
    }
     
     setCell(value: number) {
@@ -70,9 +66,7 @@ class Gameboard {
             for (let c = 0; c < 10; c++) {
                 let cell = row.insertCell(c);
                 cell.className = 'cell';
-                let dx = i < 9 ? i : i % 10;
-                let dy = Math.floor(i / 10);
-                const newCell = new Cell(cell, dx, dy);
+                const newCell = new Cell(cell);
                 this.cells[i] = newCell;
                 
                 // if (this.userType == 'computer') {
@@ -81,6 +75,8 @@ class Gameboard {
                 i++;
             }
         }
+
+        this.populateGameboard();
 
         
     }
@@ -95,20 +91,28 @@ class Gameboard {
 
     generateShip(shipType: number) {
         const ship = new Ship(shipType);
-        let randomDirection = this.generateRandom(ship.shipElements.length);
+        let randomDirection = this.generateRandom(2);
         let current = ship.shipElements[randomDirection];
         if (randomDirection === 0) ship.direction = 1;
         if (randomDirection === 1) ship.direction = 10;
         let randomStart = Math.abs(Math.floor(Math.random() * this.cells.length - (ship.shipElements[0].length * ship.direction)));
+        console.log(randomStart);
 
-        const isTaken = current.some(index => this.cells[randomStart + index].htmlElement.classList.contains('ship'));
+        const isTaken = current.some(index => this.cells[randomStart + index].htmlElement.classList.contains('taken'));
         const isAtRightEdge = current.some(index => (randomStart + index) % 10 === 10 - 1);
         const isAtLeftEdge = current.some(index => (randomStart + index) % 10 === 0);
 
-        if (!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => this.cells[randomStart + index].htmlElement.classList.add('ship'))
-        else this.generateShip(shipType);
-
-
+        if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
+            current.map(index => this.cells[randomStart + index].htmlElement.classList.add('ship'));
+            current.map(index => this.cells[randomStart + index].htmlElement.classList.add('taken'));
+            if (randomDirection === 0) {
+                current.map(index => this.cells[randomStart + index - 10].htmlElement.classList.add('taken'));
+                current.map(index => this.cells[randomStart + index + 10].htmlElement.classList.add('taken'));
+            } else if (randomDirection === 1) {
+                current.map(index => this.cells[randomStart + index - 1].htmlElement.classList.add('taken'));
+                current.map(index => this.cells[randomStart + index + 1].htmlElement.classList.add('taken'));
+            }
+        } else this.generateShip(shipType);
     }
     
 }
