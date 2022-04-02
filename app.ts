@@ -3,19 +3,21 @@ type User = 'player' | 'computer';
 
 class Ship {
     
-    shipElements: number[];
+    shipElements: [number[], number[]];
+    direction: number;
 
     constructor(private shipLength: number) {
         this.shipLength = shipLength;
-        this.shipElements = Array(this.shipLength).fill(1);
-    }
-
-    hit(position: number) {
-        this.shipElements[position - 1] = -1;
-    }
-
-    isSunk(): boolean {
-        return this.shipElements.every(element => element === -1);
+        this.direction = 0;
+        const directionX: number[] = [];
+        const directionY: number[] = [];
+        for (let i = 0; i < this.shipLength; i++){
+            directionX.push(i);
+        }
+        for (let i = 0; i < this.shipLength; i++){
+            directionY.push(10 * i);
+        }
+        this.shipElements = [directionX, directionY];
     }
 
 }
@@ -37,7 +39,6 @@ class Cell {
     setCell(value: number) {
       if (this.isChecked) return;
       this.cellValue = value;
-      console.log(this.cellValue);
       switch (value) {
          case -1:
               this.htmlElement.className = 'ship-down';
@@ -74,9 +75,9 @@ class Gameboard {
                 const newCell = new Cell(cell, dx, dy);
                 this.cells[i] = newCell;
                 
-                if (this.userType == 'computer') {
-                    cell.addEventListener('click', this.recieveAttack.bind(this));
-                }
+                // if (this.userType == 'computer') {
+                //     cell.addEventListener('click', this.recieveAttack.bind(this));
+                // }
                 i++;
             }
         }
@@ -84,25 +85,32 @@ class Gameboard {
         
     }
 
-    populateGameboard() {
-        this.shipsType.map(ship => this.placeShip(ship));
-    }
-    
-    placeShip(shipType: number) {
-            let ship = new Ship(shipType);
-            let randomX: number = Math.floor(Math.random() * 9);
-            let randomY: number = Math.floor(Math.random() * 9);
-            const index = this.cells.findIndex(cell => cell.dx == randomX && cell.dy == randomY);
-            for (let i = 0; i < ship.shipElements.length; i++) {
-                this.cells[index + i].setCell(1);
-        }
-        
-        
+    generateRandom(range: number) {
+       return Math.floor(Math.random() * range);
     }
 
-    recieveAttack(e: Event) {
-        console.log(e);
+    populateGameboard() {
+        this.shipsType.map(shipType => this.generateShip(shipType));
     }
+
+    generateShip(shipType: number) {
+        const ship = new Ship(shipType);
+        let randomDirection = this.generateRandom(ship.shipElements.length);
+        let current = ship.shipElements[randomDirection];
+        if (randomDirection === 0) ship.direction = 1;
+        if (randomDirection === 1) ship.direction = 10;
+        let randomStart = Math.abs(Math.floor(Math.random() * this.cells.length - (ship.shipElements[0].length * ship.direction)));
+
+        const isTaken = current.some(index => this.cells[randomStart + index].htmlElement.classList.contains('ship'));
+        const isAtRightEdge = current.some(index => (randomStart + index) % 10 === 10 - 1);
+        const isAtLeftEdge = current.some(index => (randomStart + index) % 10 === 0);
+
+        if (!isTaken && !isAtRightEdge && !isAtLeftEdge) current.forEach(index => this.cells[randomStart + index].htmlElement.classList.add('ship'))
+        else this.generateShip(shipType);
+
+
+    }
+    
 }
 
 const playerBoard = new Gameboard('player');
