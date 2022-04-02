@@ -106,11 +106,11 @@ class Gameboard {
             current.map(index => this.cells[randomStart + index].htmlElement.classList.add('ship'));
             current.map(index => this.cells[randomStart + index].htmlElement.classList.add('taken'));
             if (randomDirection === 0) {
-                current.map(index => this.cells[randomStart + index - 10].htmlElement.classList.add('taken'));
-                current.map(index => this.cells[randomStart + index + 10].htmlElement.classList.add('taken'));
+                current.map(index => this.cells[randomStart + index - 10] ? this.cells[randomStart + index - 10].htmlElement.classList.add('taken') : '');
+                current.map(index => this.cells[randomStart + index + 10] ? this.cells[randomStart + index + 10].htmlElement.classList.add('taken') : '');
             } else if (randomDirection === 1) {
-                current.map(index => this.cells[randomStart + index - 1].htmlElement.classList.add('taken'));
-                current.map(index => this.cells[randomStart + index + 1].htmlElement.classList.add('taken'));
+                current.map(index => this.cells[randomStart + index - 1] ? this.cells[randomStart + index - 1].htmlElement.classList.add('taken'): '');
+                current.map(index => this.cells[randomStart + index + 1] ? this.cells[randomStart + index + 1].htmlElement.classList.add('taken'): '');
             }
         } else this.generateShip(shipType);
     }
