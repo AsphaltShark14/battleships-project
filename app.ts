@@ -7,7 +7,7 @@ class Ship {
     direction: number;
     hitCount: number[];
 
-    constructor(private shipLength: number) {
+    constructor(private shipLength: number, public name: string) {
         this.shipLength = shipLength;
         this.direction = 0;
         this.hitCount = Array(this.shipLength).fill(1);
@@ -22,10 +22,6 @@ class Ship {
         this.shipElements = [directionX, directionY];
     }
 
-    isSunk() {
-        return this.hitCount.some(hit => hit === -1);
-    }
-
 }
 
 class Cell {
@@ -38,32 +34,24 @@ class Cell {
        this.cellValue = 0;
    }
     
-    setCell(value: number) {
-      if (this.isChecked) return;
-      this.cellValue = value;
-      switch (value) {
-         case -1:
-              this.htmlElement.className = 'ship-down';
-            break;
-         case 1:
-            this.htmlElement.className = 'ship';
-            break;
-      }
-
-      this.isChecked = true;
-   }
 
 }
 
 class Gameboard {
     cells: Cell[];
     table: HTMLTableElement;
-    shipsType: number[];
+    shipsType: Ship[];
 
     constructor(public userType: User) {
         this.cells = new Array(10);
         this.userType = userType;
-        this.shipsType = [5, 4, 3, 3, 2];
+        this.shipsType = [
+            new Ship(5, 'carrier'),
+            new Ship(4, 'battleship'),
+            new Ship(3, 'cruiser'),
+            new Ship(3, 'submarine'),
+            new Ship(2, 'destroyer')
+        ];
         this.table = document.querySelector(`.${this.userType}`)!;
         let i = 0;
         for (let r = 0; r < 10; r++) {
@@ -74,10 +62,6 @@ class Gameboard {
                 cell.className = 'cell';
                 const newCell = new Cell(cell);
                 this.cells[i] = newCell;
-                
-                if (this.userType == 'computer') {
-                    cell.addEventListener('click', this.recieveAttack.bind(this));
-                }
                 i++;
             }
         }
@@ -95,13 +79,12 @@ class Gameboard {
         this.shipsType.map(shipType => this.generateShip(shipType));
     }
 
-    generateShip(shipType: number) {
-        const ship = new Ship(shipType);
+    generateShip(shipType: Ship) {
         let randomDirection = this.generateRandom(2);
-        let current = ship.shipElements[randomDirection];
-        if (randomDirection === 0) ship.direction = 1;
-        if (randomDirection === 1) ship.direction = 10;
-        let randomStart = Math.abs(Math.floor(Math.random() * this.cells.length - (ship.shipElements[0].length * ship.direction)));
+        let current = shipType.shipElements[randomDirection];
+        if (randomDirection === 0) shipType.direction = 1;
+        if (randomDirection === 1) shipType.direction = 10;
+        let randomStart = Math.abs(Math.floor(Math.random() * this.cells.length - (shipType.shipElements[0].length * shipType.direction)));
 
         const isTaken = current.some(index => this.cells[randomStart + index].htmlElement.classList.contains('taken'));
         const isAtRightEdge = current.some(index => (randomStart + index) % 10 === 10 - 1);
@@ -110,9 +93,9 @@ class Gameboard {
         if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
             current.map(index => {
                 if (this.userType === 'player') {
-                    this.cells[randomStart + index].htmlElement.classList.add('ship');
+                    this.cells[randomStart + index].htmlElement.classList.add('ship',`${shipType.name}`);
                 } else {
-                    this.cells[randomStart + index].htmlElement.classList.add('enemy');
+                    this.cells[randomStart + index].htmlElement.classList.add('enemy',`${shipType.name}`);
                 }
             });
             current.map(index => this.cells[randomStart + index].htmlElement.classList.add('taken'));
@@ -127,9 +110,8 @@ class Gameboard {
     }
 
     recieveAttack(e: Event) {
-        console.log(e.target);
         const target = e.target as Element;
-        if (target.className.includes('enemy')) {
+        if (target.className.includes('enemy') || target.className.includes('ship')) {
             target.classList.add('ship-down');
         } else {
             target.classList.add('miss');
@@ -138,9 +120,46 @@ class Gameboard {
     
 }
 
-class Game {
+class Player {
+    
+    destroyerCount: number;
+    submarineCount: number;
+    cruiserCount: number;
+    battleshipCount: number;
+    carrierCount: number;
 
+    constructor(public currentPlayer: User) {
+        this.destroyerCount = 0;
+        this.submarineCount = 0;
+        this.cruiserCount = 0;
+        this.battleshipCount = 0;
+        this.carrierCount = 0;
+    }
+
+    markedSquare(classList: DOMTokenList) {
+        
+    }
 }
 
-const playerBoard = new Gameboard('player');
-const computerBoard = new Gameboard('computer');
+class Game {
+
+    playerBoard: Gameboard;
+    computerBoard: Gameboard;
+    user: Player;
+    computer: Player;
+
+    constructor() {
+        this.playerBoard = new Gameboard('player');
+        this.computerBoard = new Gameboard('computer');
+        this.user = new Player('player');
+        this.computer = new Player('computer');
+    }
+
+    gameLoop() {
+        if (isGameOver) return;
+        this.computerBoard.cells.forEach(cell => cell.htmlElement.addEventListener('click', () => this.computer.markedSquare(cell.htmlElement.classList)));
+    }
+    
+}
+
+const newGame = new Game();
