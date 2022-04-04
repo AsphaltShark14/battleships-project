@@ -5,10 +5,12 @@ class Ship {
     
     shipElements: [number[], number[]];
     direction: number;
+    hitCount: number[];
 
     constructor(private shipLength: number) {
         this.shipLength = shipLength;
         this.direction = 0;
+        this.hitCount = Array(this.shipLength).fill(1);
         const directionX: number[] = [];
         const directionY: number[] = [];
         for (let i = 0; i < this.shipLength; i++){
@@ -18,6 +20,10 @@ class Ship {
             directionY.push(10 * i);
         }
         this.shipElements = [directionX, directionY];
+    }
+
+    isSunk() {
+        return this.hitCount.some(hit => hit === -1);
     }
 
 }
@@ -69,9 +75,9 @@ class Gameboard {
                 const newCell = new Cell(cell);
                 this.cells[i] = newCell;
                 
-                // if (this.userType == 'computer') {
-                //     cell.addEventListener('click', this.recieveAttack.bind(this));
-                // }
+                if (this.userType == 'computer') {
+                    cell.addEventListener('click', this.recieveAttack.bind(this));
+                }
                 i++;
             }
         }
@@ -96,14 +102,19 @@ class Gameboard {
         if (randomDirection === 0) ship.direction = 1;
         if (randomDirection === 1) ship.direction = 10;
         let randomStart = Math.abs(Math.floor(Math.random() * this.cells.length - (ship.shipElements[0].length * ship.direction)));
-        console.log(randomStart);
 
         const isTaken = current.some(index => this.cells[randomStart + index].htmlElement.classList.contains('taken'));
         const isAtRightEdge = current.some(index => (randomStart + index) % 10 === 10 - 1);
         const isAtLeftEdge = current.some(index => (randomStart + index) % 10 === 0);
 
         if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
-            current.map(index => this.cells[randomStart + index].htmlElement.classList.add('ship'));
+            current.map(index => {
+                if (this.userType === 'player') {
+                    this.cells[randomStart + index].htmlElement.classList.add('ship');
+                } else {
+                    this.cells[randomStart + index].htmlElement.classList.add('enemy');
+                }
+            });
             current.map(index => this.cells[randomStart + index].htmlElement.classList.add('taken'));
             if (randomDirection === 0) {
                 current.map(index => this.cells[randomStart + index - 10] ? this.cells[randomStart + index - 10].htmlElement.classList.add('taken') : '');
@@ -114,7 +125,21 @@ class Gameboard {
             }
         } else this.generateShip(shipType);
     }
+
+    recieveAttack(e: Event) {
+        console.log(e.target);
+        const target = e.target as Element;
+        if (target.className.includes('enemy')) {
+            target.classList.add('ship-down');
+        } else {
+            target.classList.add('miss');
+        }
+    }
     
+}
+
+class Game {
+
 }
 
 const playerBoard = new Gameboard('player');
