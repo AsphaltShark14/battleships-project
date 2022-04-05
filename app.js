@@ -5,7 +5,7 @@ class Ship {
         this.name = name;
         this.shipLength = shipLength;
         this.direction = 0;
-        this.hitCount = Array(this.shipLength).fill(1);
+        this.hitCount = 0;
         const directionX = [];
         const directionY = [];
         for (let i = 0; i < this.shipLength; i++) {
@@ -15,6 +15,12 @@ class Ship {
             directionY.push(10 * i);
         }
         this.shipElements = [directionX, directionY];
+    }
+    hit() {
+        this.hitCount++;
+    }
+    isSunk() {
+        return this.hitCount === this.shipLength;
     }
 }
 class Cell {
@@ -69,11 +75,12 @@ class Gameboard {
         const isAtLeftEdge = current.some(index => (randomStart + index) % 10 === 0);
         if (!isTaken && !isAtRightEdge && !isAtLeftEdge) {
             current.map(index => {
+                this.cells[randomStart + index].htmlElement.id = `${shipType.name}`;
                 if (this.userType === 'player') {
-                    this.cells[randomStart + index].htmlElement.classList.add('ship', `${shipType.name}`);
+                    this.cells[randomStart + index].htmlElement.classList.add('ship');
                 }
                 else {
-                    this.cells[randomStart + index].htmlElement.classList.add('enemy', `${shipType.name}`);
+                    this.cells[randomStart + index].htmlElement.classList.add('enemy');
                 }
             });
             current.map(index => this.cells[randomStart + index].htmlElement.classList.add('taken'));
@@ -89,39 +96,81 @@ class Gameboard {
         else
             this.generateShip(shipType);
     }
-    recieveAttack(e) {
-        const target = e.target;
-        if (target.className.includes('enemy') || target.className.includes('ship')) {
-            target.classList.add('ship-down');
-        }
-        else {
-            target.classList.add('miss');
-        }
-    }
-}
-class Player {
-    constructor(currentPlayer) {
-        this.currentPlayer = currentPlayer;
-        this.destroyerCount = 0;
-        this.submarineCount = 0;
-        this.cruiserCount = 0;
-        this.battleshipCount = 0;
-        this.carrierCount = 0;
-    }
-    markedSquare(classList) {
-    }
 }
 class Game {
     constructor() {
         this.playerBoard = new Gameboard('player');
         this.computerBoard = new Gameboard('computer');
-        this.user = new Player('player');
-        this.computer = new Player('computer');
+        this.currentPlayer = 'player';
+        this.isGameOver = false;
+        this.shotFired = '-1';
+        this.gameLoop();
     }
     gameLoop() {
-        if (isGameOver)
+        if (this.isGameOver)
             return;
-        this.computerBoard.cells.forEach(cell => cell.htmlElement.addEventListener('click', () => this.computer.markedSquare(cell.htmlElement.classList)));
+        if (this.currentPlayer === 'player') {
+            // change of display
+            this.computerBoard.cells.map(cell => cell.htmlElement.addEventListener('click', e => {
+                this.shotFired = cell.htmlElement.dataset.id;
+                this.recieveAttack(e);
+            }));
+        }
+    }
+    recieveAttack(e) {
+        const target = e.target;
+        if (target.className.includes('enemy') || target.className.includes('ship')) {
+            target.classList.add('ship-down');
+            if (this.currentPlayer = 'player') {
+                this.computerBoard.shipsType.map(ship => {
+                    if (ship.name === target.id)
+                        ship.hit();
+                });
+            }
+            else if (this.currentPlayer = 'computer') {
+                this.playerBoard.shipsType.map(ship => {
+                    if (ship.name === target.id)
+                        ship.hit();
+                });
+            }
+        }
+        else {
+            target.classList.add('miss');
+        }
+        this.checkWin();
+        this.gameLoop();
+    }
+    checkWin() {
+        // element = to show info
+        let overallHits = 0;
+        if (this.currentPlayer = 'player') {
+            this.computerBoard.shipsType.map(ship => {
+                if (ship.isSunk()) {
+                    //element.textContent =  `You sunk enemy ${this.computerBoard.shipsType[0].name}!`;
+                    ship.hitCount = 10;
+                    overallHits += ship.hitCount;
+                    console.log(ship.hitCount);
+                }
+            });
+        }
+        else if (this.currentPlayer = 'computer') {
+            this.playerBoard.shipsType.map(ship => {
+                if (ship.isSunk()) {
+                    //element.textContent =  `Enemy sunk your ${this.computerBoard.shipsType[0].name}!`;
+                    ship.hitCount = 10;
+                    overallHits += ship.hitCount;
+                    console.log('sunk!');
+                }
+            });
+        }
+        if (overallHits == 50) {
+            //element.textContent = `You won!;
+            console.log('you won!');
+            this.gameOver();
+        }
+    }
+    gameOver() {
+        this.isGameOver = true;
     }
 }
 const newGame = new Game();
