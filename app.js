@@ -104,6 +104,9 @@ class Game {
         this.currentPlayer = 'player';
         this.isGameOver = false;
         this.shotFired = '-1';
+        this.startButton = document.querySelector('button');
+        this.playerHits = 0;
+        this.computerHits = 0;
         this.gameLoop();
     }
     gameLoop() {
@@ -111,63 +114,88 @@ class Game {
             return;
         if (this.currentPlayer === 'player') {
             // add change of display
-            this.computerBoard.cells.map(cell => cell.htmlElement.addEventListener('click', this.recieveAttack.bind(this)));
+            this.computerBoard.cells.map(cell => cell.htmlElement.addEventListener('click', this.playerAttack.bind(this)));
+        }
+        else if (this.currentPlayer === 'computer') {
+            setTimeout(this.computerAttack.bind(this), 1000);
         }
     }
-    recieveAttack(e) {
+    playerAttack(e) {
         const target = e.target;
-        if (target.className.includes('enemy') || target.className.includes('ship')) {
+        if (target.className.includes('shot-fired'))
+            return;
+        if (target.className.includes('enemy')) {
             target.classList.add('ship-down');
-            if (this.currentPlayer = 'player') {
-                this.computerBoard.shipsType.map(ship => {
-                    if (ship.name === target.id)
-                        ship.hit();
-                });
-            }
-            else if (this.currentPlayer = 'computer') {
-                this.playerBoard.shipsType.map(ship => {
-                    if (ship.name === target.id)
-                        ship.hit();
-                });
-            }
+            this.computerBoard.shipsType.map(ship => {
+                if (ship.name === target.id)
+                    ship.hit();
+            });
         }
         else {
             target.classList.add('miss');
         }
+        target.classList.add('shot-fired');
         this.checkWin();
+        this.currentPlayer = 'computer';
         this.gameLoop();
+    }
+    computerAttack() {
+        const index = Math.floor(Math.random() * this.playerBoard.cells.length);
+        const computerTarget = this.playerBoard.cells[index].htmlElement;
+        if (computerTarget.className.includes('shot-fired'))
+            this.computerAttack();
+        if (computerTarget.className.includes('ship')) {
+            computerTarget.classList.add('ship-down');
+            this.playerBoard.shipsType.map(ship => {
+                if (ship.name === computerTarget.id)
+                    ship.hit();
+            });
+        }
+        else {
+            computerTarget.classList.add('miss');
+        }
+        computerTarget.classList.add('shot-fired');
+        this.checkWin();
+        this.currentPlayer = 'player';
     }
     checkWin() {
         // element = to show info
-        let overallHits = 0;
         if (this.currentPlayer = 'player') {
             this.computerBoard.shipsType.map(ship => {
                 if (ship.isSunk()) {
                     //element.textContent =  `You sunk enemy ${this.computerBoard.shipsType[0].name}!`;
                     ship.hitCount = 10;
-                    overallHits += ship.hitCount;
-                    console.log(ship.hitCount);
+                    this.playerHits += ship.hitCount;
+                    console.log('shipCount: ', ship.hitCount, ship.name);
                 }
             });
         }
         else if (this.currentPlayer = 'computer') {
             this.playerBoard.shipsType.map(ship => {
+                console.log(ship.isSunk());
                 if (ship.isSunk()) {
                     //element.textContent =  `Enemy sunk your ${this.computerBoard.shipsType[0].name}!`;
                     ship.hitCount = 10;
-                    overallHits += ship.hitCount;
+                    this.computerHits += ship.hitCount;
                     console.log('sunk!');
                 }
             });
         }
-        if (overallHits == 50) {
+        console.log('playerHits: ', this.playerHits);
+        if (this.playerHits == 50) {
             //element.textContent = `You won!;
             console.log('you won!');
+            this.gameOver();
+        }
+        else if (this.computerHits == 50) {
+            //element.textContent= 'computer won!';
+            console.log('computer won');
             this.gameOver();
         }
     }
     gameOver() {
         this.isGameOver = true;
+        this.computerBoard.cells.map(cell => cell.htmlElement.removeEventListener('click', this.playerAttack.bind(this)));
     }
 }
 const newGame = new Game();
