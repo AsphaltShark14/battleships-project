@@ -141,11 +141,8 @@ class Game {
     gameLoop() {
         if (this.isGameOver) return;
         if (this.currentPlayer === 'player') {
-            // change of display
-            this.computerBoard.cells.map(cell => cell.htmlElement.addEventListener('click', e => {
-                this.shotFired = cell.htmlElement.dataset.id!;
-                this.recieveAttack(e);
-            }))
+            // add change of display
+            this.computerBoard.cells.map(cell => cell.htmlElement.addEventListener('click', this.recieveAttack.bind(this)));
         }
     }
 
