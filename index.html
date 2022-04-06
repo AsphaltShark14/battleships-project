@@ -3,41 +3,13 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <style>
-        .game{
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 50px;
-        }
-        
-        table{
-            width: 300px;
-            height: 300px;
-        }
-        
-        table, th, td {
-            border: 1px solid black;
-            border-collapse: collapse;
-        }
-
-        .ship {
-            background-color: blue;
-        }
-
-        .ship-down {
-            background-color: crimson;
-        }
-
-        .miss {
-            background-color: gray;
-        }
-    </style>
+    <link rel="stylesheet" href="style.css">
     <title>Battleships</title>
 </head>
 <body>
     <div class="headline">
-        <span>Game of Battleships</span>
+        <span class="title">Game of Battleships</span>
+        <span class="prompt">Play game now!</span>
         <button>Start!</button>
     </div>
     <div class="game">

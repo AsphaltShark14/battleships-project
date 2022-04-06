@@ -43,6 +43,10 @@ class Gameboard {
             new Ship(2, 'destroyer')
         ];
         this.table = document.querySelector(`.${this.userType}`);
+        this.generateTable();
+        this.populateGameboard();
+    }
+    generateTable() {
         let i = 0;
         for (let r = 0; r < 10; r++) {
             let row = this.table.insertRow(r);
@@ -54,16 +58,12 @@ class Gameboard {
                 i++;
             }
         }
-        this.populateGameboard();
-    }
-    generateRandom(range) {
-        return Math.floor(Math.random() * range);
     }
     populateGameboard() {
         this.shipsType.map(shipType => this.generateShip(shipType));
     }
     generateShip(shipType) {
-        let randomDirection = this.generateRandom(2);
+        let randomDirection = Math.floor(Math.random() * 2);
         let current = shipType.shipElements[randomDirection];
         if (randomDirection === 0)
             shipType.direction = 1;
@@ -83,14 +83,24 @@ class Gameboard {
                     this.cells[randomStart + index].htmlElement.classList.add('enemy');
                 }
             });
-            current.map(index => this.cells[randomStart + index].htmlElement.classList.add('taken'));
+            current.map(index => {
+                this.cells[randomStart + index].htmlElement.classList.add('taken');
+            });
             if (randomDirection === 0) {
-                current.map(index => this.cells[randomStart + index - 10] ? this.cells[randomStart + index - 10].htmlElement.classList.add('taken') : '');
-                current.map(index => this.cells[randomStart + index + 10] ? this.cells[randomStart + index + 10].htmlElement.classList.add('taken') : '');
+                current.map(index => {
+                    this.cells[randomStart + index - 10] ? this.cells[randomStart + index - 10].htmlElement.classList.add('taken') : '';
+                    this.cells[randomStart + index + 10] ? this.cells[randomStart + index + 10].htmlElement.classList.add('taken') : '';
+                    this.cells[randomStart + index - 1] ? this.cells[randomStart + index - 1].htmlElement.classList.add('taken') : '';
+                    this.cells[randomStart + index + current.length + 1] ? this.cells[randomStart + index + current.length + 1].htmlElement.classList.add('taken') : '';
+                });
             }
             else if (randomDirection === 1) {
-                current.map(index => this.cells[randomStart + index - 1] ? this.cells[randomStart + index - 1].htmlElement.classList.add('taken') : '');
-                current.map(index => this.cells[randomStart + index + 1] ? this.cells[randomStart + index + 1].htmlElement.classList.add('taken') : '');
+                current.map(index => {
+                    this.cells[randomStart + index - 1] ? this.cells[randomStart + index - 1].htmlElement.classList.add('taken') : '';
+                    this.cells[randomStart + index + 1] ? this.cells[randomStart + index + 1].htmlElement.classList.add('taken') : '';
+                    this.cells[randomStart + index - 10] ? this.cells[randomStart + index - 10].htmlElement.classList.add('taken') : '';
+                    this.cells[randomStart + index + current.length + 10] ? this.cells[randomStart + index + current.length + 10].htmlElement.classList.add('taken') : '';
+                });
             }
         }
         else
@@ -105,6 +115,7 @@ class Game {
         this.isGameOver = false;
         this.shotFired = '-1';
         this.startButton = document.querySelector('button');
+        this.promptElement = document.querySelector('.prompt');
         this.playerHits = 0;
         this.computerHits = 0;
         this.gameLoop();
@@ -113,10 +124,11 @@ class Game {
         if (this.isGameOver)
             return;
         if (this.currentPlayer === 'player') {
-            // add change of display
+            this.promptElement.textContent = 'Your turn!';
             this.computerBoard.cells.map(cell => cell.htmlElement.addEventListener('click', this.playerAttack.bind(this)));
         }
         else if (this.currentPlayer === 'computer') {
+            this.promptElement.textContent = `Computer's turn!`;
             setTimeout(this.computerAttack.bind(this), 1000);
         }
     }
@@ -157,16 +169,15 @@ class Game {
         computerTarget.classList.add('shot-fired');
         this.checkWin();
         this.currentPlayer = 'player';
+        this.promptElement.textContent = 'Your turn!';
     }
     checkWin() {
-        // element = to show info
         if (this.currentPlayer = 'player') {
             this.computerBoard.shipsType.map(ship => {
                 if (ship.isSunk()) {
-                    //element.textContent =  `You sunk enemy ${this.computerBoard.shipsType[0].name}!`;
+                    this.promptElement.textContent = `You sunk enemy ${this.computerBoard.shipsType[0].name}!`;
                     ship.hitCount = 10;
                     this.playerHits += ship.hitCount;
-                    console.log('shipCount: ', ship.hitCount, ship.name);
                 }
             });
         }
@@ -174,22 +185,18 @@ class Game {
             this.playerBoard.shipsType.map(ship => {
                 console.log(ship.isSunk());
                 if (ship.isSunk()) {
-                    //element.textContent =  `Enemy sunk your ${this.computerBoard.shipsType[0].name}!`;
+                    this.promptElement.textContent = `Enemy sunk your ${this.computerBoard.shipsType[0].name}!`;
                     ship.hitCount = 10;
                     this.computerHits += ship.hitCount;
-                    console.log('sunk!');
                 }
             });
         }
-        console.log('playerHits: ', this.playerHits);
         if (this.playerHits == 50) {
-            //element.textContent = `You won!;
-            console.log('you won!');
+            this.promptElement.textContent = 'You won!';
             this.gameOver();
         }
         else if (this.computerHits == 50) {
-            //element.textContent= 'computer won!';
-            console.log('computer won');
+            this.promptElement.textContent = 'You lost!';
             this.gameOver();
         }
     }
